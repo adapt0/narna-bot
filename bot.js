@@ -116,7 +116,7 @@ class NarnaBot {
     cmdHelp_() {
         const keys = Object.keys(this.commands_).sort();
         return keys.map((k) => {
-            return `${k} - ${this.commands_[k].desc}`;
+            return `!${k} - ${this.commands_[k].desc}`;
         }).join('\r\n');
     }
 

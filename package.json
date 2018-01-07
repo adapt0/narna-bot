@@ -1,17 +1,19 @@
 {
   "name": "narna-bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
-  "main": "bot.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "adapt0",
+  "license": "MIT",
   "dependencies": {
     "commander": "^2.12.2",
     "discord.js": "^11.2.1",
+    "icy": "^2.1.0",
+    "node-opus": "^0.2.7",
     "nodemon": "^1.14.6",
     "winston": "^2.4.0"
   }

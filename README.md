@@ -11,6 +11,9 @@ Configuration requires a 'config.json' file:
         },
         "discord": {
             "token": "APPBOTUSERTOKEN"
+        },
+        "radioStations": {
+            "Jack-FM": "http://opml.radiotime.com/Tune.ashx?id=s31956"
         }
     }
 

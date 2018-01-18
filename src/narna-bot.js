@@ -41,7 +41,7 @@ class NarnaBot {
             const config = require('../config.json');
             this.cpUrl_ = config.cp.url;
             this.cpKey_ = config.cp.key;
-            this.discordToken_ = config.discord.token;
+            this.discordToken_ = config.discord && config.discord.token;
 
             if (config.radioStations) {
                 Object.keys(config.radioStations).forEach((name) => {
@@ -58,14 +58,18 @@ class NarnaBot {
 
         //
         logger.info(this.version);
+
         await this.beginConsole_();
-        await this.beginDiscordBot_();
+
+        if (this.discordToken_) {
+            await this.beginDiscordBot_();
+        }
     }
 
     beginConsole_() {
         const rl = readline.createInterface({
             input: process.stdin,
-            output: process.stdout
+            // output: process.stdout
         });
 
         rl.on('line', async (content) => {

@@ -183,6 +183,8 @@ class NarnaBot {
         if (args.length <= 0) return null;
 
         const movies = await this.movieSearch(args.join(' '));
+        if (!movies) return 'No matches';
+
         const titles = movies.map((m) => {
             if (m.in_wanted) return `${m.original_title} (wanted: ${m.in_wanted.status})`;
             if (m.in_library) return `${m.original_title} (library: ${m.in_library.status})`;

@@ -16,6 +16,7 @@ class NarnaBot {
             ping:    { desc: "Ping bot" },
             radio:   { desc: "Radio stations" },
             search:  { desc: "media.search" },
+            wanted:  { desc: "wanted media" },
             version: { desc: "Report version" },
         };
 
@@ -104,7 +105,26 @@ class NarnaBot {
         bot.on('message', async (msg) => {
             logger.verbose(`Discord: ${msg.content}`, { msg });
             const reply = await this.processMessage_(msg);
-            if (reply) msg.reply(reply);
+            if (reply) {
+                const maxReply = 1000;
+                const bytesTotal = reply.length;
+                for (let ofs = 0; ofs < bytesTotal; ) {
+                    const lastOfs = Math.min(ofs + maxReply, bytesTotal);
+                    if (lastOfs >= bytesTotal) {
+                        // console.log(reply.slice(ofs));
+                        msg.reply(reply.slice(ofs));
+                        break;
+                    } else {
+                        let idx = reply.lastIndexOf('\n', lastOfs);
+                        if (idx <= ofs) idx = lastOfs;
+
+                        // console.log(reply.slice(ofs, idx));
+                        msg.reply(reply.slice(ofs, idx));
+                        ofs = idx + 1;
+                    }
+                }
+                // if (reply) msg.reply(reply);
+            }
         });
         bot.on('voiceStateUpdate', async (oldMember, newMember) => {
             const newVoice = newMember && newMember.voiceChannel;
@@ -145,7 +165,7 @@ class NarnaBot {
                 const m = content.match(/(?:https?:\/\/)?(?:www\.)?imdb\.com\/title\/(tt[^\/]+)/);
                 if (!m || !m[1]) return null;
 
-                const res = await this.movieAdd(m[1]);
+                const res = await this.cpMovieAdd(m[1]);
                 if (res.success) {
                     const tagline = res.movie && res.movie.info && res.movie.info.tagline;
                     let msg = `Added ${res.movie && res.movie.title}`;
@@ -186,7 +206,7 @@ class NarnaBot {
     async cmdSearch_(...args) {
         if (args.length <= 0) return null;
 
-        const movies = await this.movieSearch(args.join(' '));
+        const movies = await this.cpSearch(args.join(' '));
         if (!movies) return 'No matches';
 
         const titles = movies.map((m) => {
@@ -198,28 +218,52 @@ class NarnaBot {
         return uniqueTitles.join('\r\n');
     }
 
-    async movieAdd(identifier) {
+    async cmdWanted_(...args) {
+        const jsonData = await this.cpMediaList({
+            identifier: 'wanted',
+            status: 'active'
+        });
+        const movies = jsonData && jsonData.movies;
+        if (!movies) return 'No matches';
+
+        const titles = movies.map((m) => {
+            return `${m.title} (${m.info && m.info.year})`;
+        });
+
+        const uniqueTitles = [... new Set(titles)].sort();
+        return uniqueTitles.join('\r\n');
+    }
+
+    /// api request wrapper
+    async cpRequestJson_(apiCall, params) {
         const u = new url.URL(this.cpUrl_);
-        u.pathname = `/api/${this.cpKey_}/movie.add`;
-        u.search = `identifier=${encodeURIComponent(identifier)}`;
+        u.pathname = `/api/${this.cpKey_}/${apiCall}`;
+        if (params) {
+            u.search = Object.keys(params).map(
+                (k) => `${k}=${encodeURIComponent(params[k])}`
+            ).join('&');
+        }
 
-        logger.silly(u.toString());
+        logger.silly(`<= ${u.toString()}`);
 
-        const jsonData = await httpUtils.getJson(u.toString());
-        logger.silly('jsonData', jsonData);
+        const jsonData = httpUtils.getJson(u.toString());
+        logger.silly('=>', jsonData);
         return jsonData;
     }
 
-    async movieSearch(desc) {
-        const u = new url.URL(this.cpUrl_);
-        u.pathname = `/api/${this.cpKey_}/search`;
-        u.search = `q=${encodeURIComponent(desc)}`;
-
-        logger.silly(u.toString());
-
-        const jsonData = await httpUtils.getJson(u.toString());
-        logger.silly('movieSearch', {JSON: jsonData});
-        return jsonData.movies;
+    async cpMovieAdd(identifier) {
+        return await this.cpRequestJson_('movie.add', {
+            identifier
+        });
+    }
+    async cpMediaList(params) {
+        return await this.cpRequestJson_('media.list', params);
+    }
+    async cpSearch(desc) {
+        const jsonData = await this.cpRequestJson_('search', {
+            q: desc
+        });
+        return jsonData && jsonData.movies;
     }
 
     /// @returns true if station is empty

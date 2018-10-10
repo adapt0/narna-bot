@@ -1,6 +1,6 @@
 {
   "name": "narna-bot",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,11 +10,12 @@
   "author": "adapt0",
   "license": "MIT",
   "dependencies": {
-    "commander": "^2.12.2",
-    "discord.js": "^11.2.1",
+    "commander": "^2.19.0",
+    "discord.js": "^11.4.2",
+    "elizabot": "0.0.2",
     "icy": "^2.1.0",
-    "node-opus": "^0.2.7",
-    "nodemon": "^1.14.6",
-    "winston": "^2.4.0"
+    "node-opus": "^0.3.0",
+    "nodemon": "^1.18.4",
+    "winston": "^3.1.0"
   }
 }

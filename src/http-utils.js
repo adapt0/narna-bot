@@ -18,6 +18,7 @@ module.exports = {
                 }, (res) => {
                     resolve(res);
                 });
+                req.on('error', reject);
             } catch (e) {
                 reject(e);
             }
